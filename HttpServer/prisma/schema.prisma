@@ -1,0 +1,52 @@
+
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User {
+  id              Int             @id             @default(autoincrement())
+  username        String          @unique
+  password        String
+  firstName       String
+  gamesAsWhite    Game[]          @relation("gameAsWhite")     
+  gamesAsBlack    Game[]          @relation("gameAsBlack")
+}
+
+model Game {
+  id                  Int                 @id             @default(autoincrement())
+  whitePlayerId       Int
+  blackPlayerId       Int
+  whitePlayer         User                @relation("gameAsWhite", fields: [whitePlayerId], references: [id])
+  blackPlayer         User                @relation("gameAsBlack", fields: [blackPlayerId], references: [id])  
+  timeControl         TimeControlType 
+  createdAt           DateTime            @default(now())
+  status              GameStatus
+  result              GameResult
+}
+
+enum TimeControlType {
+  TC_5_3
+  TC_10_2
+  TC_15_3
+}
+
+enum GameStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+  TIME_UP
+  PLAYER_EXIT
+}
+
+enum GameResult {
+  WHITE_WINS
+  BLACK_WINS
+  DRAW
+}
