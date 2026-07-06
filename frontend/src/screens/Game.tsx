@@ -15,8 +15,8 @@ export const GAME_OVER = "game_over";
 
 export default function Game(){
 
-    const [chess, setChess] = useState(new Chess());
-    const [board, setBoard] = useState(chess.board())
+    const [chess, setChess] = useState(new Chess()); // give some intial value
+    const [board, setBoard] = useState(chess.board()) // give some initial value, this is what showing on the screen, initial board
     const [started, setStarted] = useState(false);
     const [color, setColor] = useState<string>("")
 
@@ -73,7 +73,8 @@ export default function Game(){
                         !started ? 
                         <Button onClick={() => {
                                 socket.send(JSON.stringify({
-                                    type : INIT_GAME
+                                    type : INIT_GAME,
+                                    timeControl : "TC_5_3",
                                 }))
                             }} text={"Play Online"}/>
                         :

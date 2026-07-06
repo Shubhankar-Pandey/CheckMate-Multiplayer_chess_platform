@@ -5,10 +5,12 @@ export class GameManager {
     games;
     pendingUser;
     users;
+    pendingUser_10_2;
     constructor() {
         this.games = [];
         this.pendingUser = null;
         this.users = [];
+        this.pendingUser_10_2 = new Map();
     }
     addUser(socket) {
         this.users.push(socket);
@@ -21,7 +23,7 @@ export class GameManager {
     addHandler(socket) {
         socket.on("message", (data) => {
             const message = JSON.parse(data.toString());
-            // console.log("message = ", message);
+            console.log("message = ", message);
             if (message.type === INIT_GAME) {
                 // means user want to start a game
                 if (this.pendingUser) {
