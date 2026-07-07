@@ -1,14 +1,18 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import AuthLayout from "../components/authComponents/authLayout";
 import AuthInput from "../components/authComponents/authInput";
 import PasswordInput from "../components/authComponents/passwordInput"
 import AuthButton from "../components/authComponents/authButton";
+import { signinCall } from "../apiCalls/auth";
+import { useDispatch } from "react-redux";
+import { setUser } from "../Redux/Slices/userSlice";
 
-interface SigninFormData {
+
+export interface SigninFormData {
     username: string;
     password: string;
 }
@@ -17,12 +21,16 @@ export default function Signin() {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch();
+
 
     const {
         register,
         handleSubmit,
         formState: { errors },
     } = useForm<SigninFormData>();
+
+
 
     const handleSignin = async (data: SigninFormData) => {
 
@@ -31,42 +39,23 @@ export default function Signin() {
         setLoading(true);
 
         try {
-
-            // ==================================================
-            // TODO:
-            // Make your axios API call here.
-            //
-            // Example:
-            //
-            // const response = await axios.post(
-            //     "/api/v1/user/signin",
-            //     data,
-            //     {
-            //         withCredentials: true,
-            //     }
-            // );
-            // ==================================================
-
-            toast.success("Signed in successfully!");
-
-            setTimeout(() => {
+            const response = await signinCall(data);
+            if(response?.success){
+                toast.success(response.message);
+                dispatch(setUser(response.user));
                 navigate("/");
-            }, 700);
-
-        } catch (error) {
-
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Something went wrong."
-            );
-
-        } finally {
-
-            setLoading(false);
-
+            }
+            else{
+                toast.error("Signin failed");
+            }
         }
-    };
+        catch (error) {
+            toast.error( error instanceof Error ? error.message : "Something went wrong.");
+        } 
+        finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <AuthLayout

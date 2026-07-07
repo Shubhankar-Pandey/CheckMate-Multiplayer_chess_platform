@@ -3,6 +3,8 @@ dotenv.config();
 import express from "express"
 import cookieParser from "cookie-parser"
 import { route } from "./Routes/route.js";
+import cors from "cors"
+
 
 
 declare global {
@@ -15,6 +17,10 @@ declare global {
 
 
 const app = express();
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 

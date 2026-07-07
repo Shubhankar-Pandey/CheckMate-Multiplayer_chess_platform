@@ -98,4 +98,24 @@ export const signin = async (req, res) => {
         });
     }
 };
+export const signout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+        });
+        res.status(200).json({
+            success: true,
+            message: "Signout successfully",
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
 //# sourceMappingURL=auth.js.map

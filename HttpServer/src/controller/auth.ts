@@ -117,3 +117,27 @@ export const signin = async(req : Request, res : Response) => {
         })
     }
 }
+
+
+
+export const signout = async(req : Request, res : Response) => {
+    try{
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict" as const, 
+        })
+
+        res.status(200).json({
+            success : true, 
+            message : "Signout successfully",
+        })
+    }
+    catch(error){
+        console.error(error);
+        return res.status(500).json({
+            success : false, 
+            message : "Internal server error",
+        }) 
+    }
+}

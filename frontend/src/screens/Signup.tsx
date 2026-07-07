@@ -7,13 +7,17 @@ import AuthLayout from "../components/authComponents/authLayout";
 import AuthInput from "../components/authComponents/authInput";
 import PasswordInput from "../components/authComponents/passwordInput";
 import AuthButton from "../components/authComponents/authButton";
+import { signupCall } from "../apiCalls/auth";
 
-interface SignupFormData {
+
+export interface SignupFormData {
     username: string;
     firstName: string;
     password: string;
     confirmPassword: string;
 }
+
+
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -30,36 +34,28 @@ export default function Signup() {
     const password = watch("password");
 
     const handleSignup = async (data: SignupFormData) => {
-
         if (loading) return;
 
         setLoading(true);
 
         try {
-
-            // ==========================================
-            // TODO:
-            // Make your axios signup API call here.
-            // ==========================================
-
-            toast.success("Account created successfully!");
-
-            setTimeout(() => {
+            const response = await signupCall(data);
+            if(response?.success){
+                console.log("response.data = ", response);
+                toast.success(response.message);
                 navigate("/");
-            }, 700);
-
-        } catch (error) {
-
+            }
+            else{
+                toast.error("Signup failed");
+            }
+        } 
+        catch (error) {
             toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Something went wrong."
+                error instanceof Error ? error.message : "Something went wrong."
             );
-
-        } finally {
-
+        } 
+        finally {
             setLoading(false);
-
         }
     };
 
