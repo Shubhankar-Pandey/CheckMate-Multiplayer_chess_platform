@@ -6,13 +6,13 @@ import { INIT_GAME, MOVE, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
 
 
 export class GameManager {
-    private games : Game[];
+    private games : Map<WebSocket, Game>;
     private users : WebSocket[]; 
     private pendingUserMap : Map<string, WebSocket>;
 
 
     constructor(){
-        this.games = [];
+        this.games = new Map<WebSocket, Game>();
         this.users = [];
         this.pendingUserMap = new Map<string, WebSocket>();
     }
@@ -20,6 +20,9 @@ export class GameManager {
     addUser(socket : WebSocket){
         this.users.push(socket);
         this.addHandler(socket);
+        socket.on("close", () => {
+            this.removeUser(socket);
+        });
     }
 
     removeUser(socket : WebSocket){
@@ -42,9 +45,19 @@ export class GameManager {
             const player1: WebSocket = socket;
             const player2: WebSocket = waitingSocket;
             this.pendingUserMap.delete(TC);
-            const game = new Game(player1, player2, TC);
-            this.games.push(game);
+            const game = new Game(player1, player2, TC, (player1 : WebSocket, player2 : WebSocket) => {
+                this.removeGame(player1, player2);
+            });
+            this.games.set(player1, game);
+            this.games.set(player2, game);
         }
+    }
+
+    private removeGame(player1 : WebSocket, player2 : WebSocket){
+        this.games.delete(player1);
+        this.games.delete(player2);
+        // players stay in this.users since they're still connected;
+        // they can matchmake into a new game from here if they want
     }
 
     private addHandler(socket : WebSocket){
@@ -74,7 +87,7 @@ export class GameManager {
                 }
             }
             else if(message.type === MOVE){
-                const game = this.games.find(game => game.player1.socket === socket || game.player2.socket === socket)
+                const game = this.games.get(socket);
                 if(game){
                     game.makeMove(socket, message.payload);
                 }

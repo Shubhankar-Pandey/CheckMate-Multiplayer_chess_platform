@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Chess } from "chess.js";
-import { GAME_OVER, INIT_GAME, MOVE } from "./messages.js";
+import { drawByFiftyMovesPayload, drawPayload, GAME_OVER, INIT_GAME, insufficientMaterialPayload, MOVE, stalematePayload, threefoldRepetitionPayload } from "./messages.js";
 
 interface ClockState {
     whiteTime : number;
@@ -10,17 +10,21 @@ interface ClockState {
     turnStartedAt : number;
 }
 
+
 export class Game {
     public player1 : {socket : WebSocket, color : "w" | "b"};
     public player2 : {socket : WebSocket, color : "w" | "b"};
     private chess : Chess;
     private clock : ClockState;
     private flagTimeout: NodeJS.Timeout | null = null;
+    private isOver = false;
 
 
-    constructor(player1 : WebSocket, player2 : WebSocket, TC : string){
 
-        const random : number = Math.floor(Math.random()) * 10;
+    constructor(player1 : WebSocket, player2 : WebSocket, TC : string, private onGameOver: (player1: WebSocket, player2 : WebSocket) => void){
+
+        // ***************** getting random color *****************
+        const random : number = Math.floor(Math.random() * 10);
         if(random & 1){
             this.player1 = {socket : player1, color : "w"};
             this.player2 = {socket : player2, color : "b"};
@@ -30,8 +34,10 @@ export class Game {
             this.player2 = {socket : player2, color : "w"};
         }
         
+        // ***************** intialising new game *****************
         this.chess = new Chess();
         
+        // ***************** setting the clock *****************
         let arr : string[] = TC.split("_");
         const minutes : number | undefined = Number(arr[1]);
         const seconds : number | undefined = Number(arr[2]);
@@ -40,11 +46,11 @@ export class Game {
             whiteTime : time,
             blackTime : time, 
             increment : seconds * 1000,
-            turn : "w",
+            turn : this.chess.turn(),
             turnStartedAt : Date.now()
         }
         
-        
+        // ***************** send message to both player *****************
         this.player1.socket.send(JSON.stringify({
             type : INIT_GAME,
             payload : {
@@ -60,8 +66,11 @@ export class Game {
             }
         }))
 
+        // ***************** starting the clock for left time *****************
         this.startTurnTimer();
     }
+
+
 
 
     private startTurnTimer(){
@@ -69,12 +78,42 @@ export class Game {
         this.flagTimeout = setTimeout(() => {this.handleFlagFall()}, timeLeft)
     }
 
+
+
+
     private handleFlagFall(){
-        const loser = this.clock.turn; // whoever's turn it was, ran out
+        const loserColor = this.clock.turn; // whoever's turn it was, ran out of time 
+        const winner = loserColor === "w" ? "b" : "w";
+        
         // end game, notify both players, clean up
+        this.endGame({ winner, reason: "timeout" });
     }
 
+
+
+
+    private endGame(payload: any){
+        if(this.isOver) return;   
+        this.isOver = true;
+
+        if(this.flagTimeout){
+            clearTimeout(this.flagTimeout);
+            this.flagTimeout = null;
+        }
+
+        const response = JSON.stringify({ type: GAME_OVER, payload });
+        this.player1.socket.send(response);
+        this.player2.socket.send(response);
+
+        this.onGameOver(this.player1.socket, this.player2.socket);       // <-- tell GameManager "I'm done, remove me"
+    }
+
+    
+
+
     makeMove(socket : WebSocket, move : {from : string, to : string}){
+
+        if(this.isOver) return; 
         
         if(this.chess.turn() === 'w'){
             const ws_socket : WebSocket = this.player1.color === 'w' ? this.player1.socket : this.player2.socket;
@@ -91,9 +130,7 @@ export class Game {
         
 
         try{
-            // 1. is the move valid
-            // 2. update the board
-            // 3. push the move
+            // 1. is the move valid, 2. update the board, 3. push the move
             // these all the three steps is handled by the chess.js library
             this.chess.move(move); // this line does all the three above mentioned steps
         }
@@ -118,28 +155,39 @@ export class Game {
             clearTimeout(this.flagTimeout);
         }
 
-        this.clock.turn = this.clock.turn === 'w' ? "b" : "w";
+        this.clock.turn = this.chess.turn();
         this.clock.turnStartedAt = Date.now();
-        this.startTurnTimer();
+        
 
 
         // check if the game is over
-        if(this.chess.isGameOver()){
-            // send the game over message to both the players
-            this.player1.socket.send(JSON.stringify({
-                type : GAME_OVER,
-                payload : {
-                    winner : this.chess.turn() === 'w' ? "black" : "white",
-                }
-            }))
-            this.player2.socket.send(JSON.stringify({
-                type : GAME_OVER,
-                payload : {
-                    winner : this.chess.turn() === 'w' ? "black" : "white",
-                }
-            }))
+        // send the game over message to both the players
+        if(this.chess.isStalemate()){
+            this.endGame(stalematePayload);
             return;
         }
+        else if(this.chess.isInsufficientMaterial()){
+            this.endGame(insufficientMaterialPayload);
+            return;
+        }
+        else if(this.chess.isDrawByFiftyMoves()){
+            this.endGame(drawByFiftyMovesPayload);
+            return;
+        }
+        else if(this.chess.isThreefoldRepetition()){
+            this.endGame(threefoldRepetitionPayload);
+            return;
+        }
+        else if(this.chess.isCheckmate()){
+            this.endGame({winner : this.chess.turn() === 'w' ? "b" : "w", reasong : "checkmate"})
+            return;
+        }
+        else if(this.chess.isDraw()){
+            this.endGame(drawPayload);
+            return;
+        }
+
+        this.startTurnTimer();
         
         // console.log("move before sending to player1 = ", move);
         this.player1.socket.send(JSON.stringify({
