@@ -1,6 +1,7 @@
 import type { Chess, Color, PieceSymbol, Square } from "chess.js";
 import { useState } from "react";
 import { MOVE } from "../../screens/Game";
+import { useSelector } from "react-redux";
 
 const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const numbers : number[] = [8, 7, 6, 5, 4, 3, 2 ,1];
@@ -12,15 +13,17 @@ type SquareType = {
 } | null;
 
 
-export default function ChessBoard({socket, board, chess, color} : {
+export default function ChessBoard({socket, board, chess, color, opponent} : {
     board: SquareType[][];
     socket : WebSocket;
     chess : Chess;
     color : string;
+    opponent : string;
 }){
 
     const [from, setFrom] = useState<null | string>(null);
     const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
+    const { user } = useSelector((state : any) => state.user);
 
     function onMoveHandler(i : number,j : number, square : SquareType){
         let row = 8 - i;
@@ -53,22 +56,23 @@ export default function ChessBoard({socket, board, chess, color} : {
 
     return (
         <div className="flex flex-col">
-            <div className="text-white text-2xl uppercase">
-                {color}
+            <div className="flex justify-between border border-zinc-700 p-1">
+                <div className="px-3">{opponent}</div>
+                <div className="px-3">Clock</div>
             </div>
-            <div className="flex">
+            <div className="flex mt-1">
                 {/* number markings */}
-                <div className={`flex ${color === "black" ? "flex-col-reverse" : "flex-col"}`}>
+                <div className={`flex ${color === "b" ? "flex-col-reverse" : "flex-col"}`}>
                     {
                         numbers.map((num, index) => (
-                            <div key={index} className="w-16 h-16 flex items-center justify-center text-xl">
+                            <div key={index} className= {`text-black font-bold text-sm w-6 h-16 flex items-center justify-center ${index & 1 ? "bg-blue-300" : "bg-blue-200"}`}>
                                 {num}
                             </div>
                         ))
                     }
                 </div>
                 {/* board  */}
-                <div className={`flex ${color === "black" ? "flex-col-reverse" : "flex-col"}`}>
+                <div className={`flex ${color === "b" ? "flex-col-reverse" : "flex-col"}`}>
                     {
                         board.map((row , i) => (
                             <div key={i} className="flex ">
@@ -83,7 +87,7 @@ export default function ChessBoard({socket, board, chess, color} : {
                                             <div onClick={() => onMoveHandler(i,j, square)}
                                             key={j}
                                             className={`w-16 h-16
-                                            ${isPossibleMove ? "bg-blue-300 border-2 border-blue-600" : (i+j) % 2 === 0 ? "bg-green-700" : "bg-green-100"}`}>
+                                            ${isPossibleMove ? "bg-blue-500 border border-zinc-950" : (i+j) % 2 === 0 ? "bg-green-700" : "bg-green-100"}`}>
                                                 <div className="text-black flex items-center justify-center w-full h-full">
                                                     {
                                                         square && (
@@ -103,14 +107,18 @@ export default function ChessBoard({socket, board, chess, color} : {
                     }
                 </div>
             </div>
-            <div className="flex items-center justify-center ml-16">
+            <div className="flex items-center justify-center ml-6">
                 {
                     files.map((file, index) => (
-                        <div key={index} className="w-16 h-16 flex items-center justify-center text-xl">
+                        <div key={index} className={`text-black font-bold w-16 h-6 flex items-center justify-center text-sm ${index & 1 ? "bg-blue-300" : "bg-blue-200"}`}>
                             {file}
                         </div>
                     ))
                 }
+            </div>
+            <div className="flex justify-between border border-zinc-700 p-1 mt-1">
+                <div className="px-3">{user.username}</div>
+                <div className="px-3">Clock</div>
             </div>
         </div>
     )

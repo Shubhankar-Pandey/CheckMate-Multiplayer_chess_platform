@@ -1,223 +1,226 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { Gamepad2 } from "lucide-react";
-
+import Button from "../components/CommonComponents/Button";
 import {
-    TIME_CONTROLS,
-    type TimeControl,
-} from "../components/playComponents/timeControl";
+    Swords,
+    UserPlus,
+    Clock3,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-import TimeControlCard from "../components/playComponents/timeControlCard";
-import RandomMatchCard from "../components/playComponents/randomMatchCard";
-import FriendRequestCard from "../components/playComponents/friendRequestCard";
+export const TIME_CONTROLS = [
+    {
+        id: "TC_5_3",
+        title: "5 | 3",
+        description: "5 min • 3 sec increment",
+    },
+    {
+        id: "TC_10_2",
+        title: "10 | 2",
+        description: "10 min • 2 sec increment",
+    },
+    {
+        id: "TC_15_2",
+        title: "15 | 2",
+        description: "15 min • 2 sec increment",
+    },
+] as const;
 
-interface FriendRequestForm {
-    username: string;
-}
+
+type TimeControl = (typeof TIME_CONTROLS)[number]["id"];
+
+
+
 
 export default function SelectGame() {
-    const [selectedTimeControl, setSelectedTimeControl] =
-        useState<TimeControl>("TC_10_2");
 
-    const [randomLoading, setRandomLoading] =
-        useState(false);
+    const [selectedTC, setSelectedTC] = useState<TimeControl>("TC_5_3");
+    const [friendUsername, setFriendUsername] = useState("");
+    const navigate = useNavigate();
 
-    const [friendLoading, setFriendLoading] =
-        useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        watch,
-    } = useForm<FriendRequestForm>();
 
-    const username = watch("username");
-
-    //--------------------------------------------------
-    // Random Match
-    //--------------------------------------------------
-
-    const handleStartGame = async (
-        timeControl: TimeControl
-    ) => {
-
-        if (randomLoading) return;
-
-        setRandomLoading(true);
-
-        try {
-
-            // TODO:
-            // WebSocket matchmaking
-
-            console.log(timeControl);
-
-            toast.success("Searching for opponent...");
-
-        } catch {
-
-            toast.error("Unable to start matchmaking.");
-
-        } finally {
-
-            setRandomLoading(false);
-
-        }
+    const handleStartPlay = () => {
+        navigate("/game", {
+            state : {
+                selectedTC : selectedTC
+            }
+        })
     };
 
-    //--------------------------------------------------
-    // Friend Request
-    //--------------------------------------------------
 
-    const handleSendRequestToFriend = async (
-        timeControl: TimeControl,
-        username: string
-    ) => {
 
-        if (friendLoading) return;
-
-        setFriendLoading(true);
-
-        try {
-
-            // TODO:
-            // Send request through websocket
-
-            console.log(timeControl);
-            console.log(username);
-
-            toast.success("Friend request sent.");
-
-        } catch {
-
-            toast.error("Unable to send request.");
-
-        } finally {
-
-            setFriendLoading(false);
-
-        }
+    const handleRequestFriend = () => {
+        // TODO:
     };
+
+
 
     return (
-        <div className="min-h-screen bg-[#0f1115] px-6 py-12">
 
-            <div className="mx-auto max-w-7xl">
+        <div className="min-h-screen bg-[#0f1115] text-white">
+
+            <div className="mx-auto flex h-full max-w-7xl flex-col px-8 py-8">
 
                 {/* Heading */}
 
-                <div className="mb-14 text-center">
-
-                    <div className="inline-flex items-center gap-3 rounded-full border border-green-500/30 bg-green-500/10 px-5 py-2">
-
-                        <Gamepad2
-                            className="text-green-500"
-                            size={20}
-                        />
-
-                        <span className="font-semibold text-green-500">
-                            PLAY CHESS
-                        </span>
-
-                    </div>
-
-                    <h1 className="mt-6 text-5xl font-bold text-white">
+                <div className="mb-8 text-center">
+                    <h1 className="text-4xl font-bold">
                         Choose How You{" "}
                         <span className="text-green-500">
                             Want To Play
                         </span>
                     </h1>
-
-                    <p className="mt-4 text-lg text-gray-400">
-                        Select a time control and start a game.
+                    <p className="mt-2 text-gray-400">
+                        Select a time control and
+                        start a new game.
                     </p>
-
                 </div>
 
                 {/* Time Controls */}
 
-                <section>
+                <div>
+                    <p className="mb-4 text-lg font-semibold">
+                        Time Control
+                    </p>
+                    <div className="grid grid-cols-3 gap-4">
 
-                    <h2 className="mb-6 text-2xl font-bold text-white">
-                        Select Time Control
-                    </h2>
-
-                    <div className="grid gap-6 md:grid-cols-3">
-
-                        {TIME_CONTROLS.map((timeControl) => (
-
-                            <TimeControlCard
-                                key={timeControl.id}
-                                id={timeControl.id}
-                                title={timeControl.title}
-                                description={timeControl.description}
-                                selected={
-                                    selectedTimeControl ===
-                                    timeControl.id
+                        {TIME_CONTROLS.map((tc) => (
+                            <button
+                                key={tc.id}
+                                onClick={() =>
+                                    setSelectedTC(tc.id)
                                 }
-                                onClick={
-                                    setSelectedTimeControl
-                                }
-                            />
+                                className={` rounded-2xl border p-4 text-left transition-all duration-300
+                                    ${
+                                        selectedTC === tc.id
+                                            ? "border-green-500 bg-green-500/10"
+                                            : "border-white/10 bg-[#171a21] hover:border-green-500/50"
+                                    }
+                                `}
+                            >
 
+                                <div className="flex items-center gap-3">
+                                    <div
+                                        className={` flex h-10 w-10 items-center justify-center rounded-full
+                                            ${
+                                                selectedTC ===
+                                                tc.id
+                                                    ? "bg-green-500 text-black"
+                                                    : "bg-[#0f1115] text-green-500"
+                                            }
+                                        `}
+                                    >
+                                        <Clock3 size={18} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold">
+                                            {tc.title}
+                                        </h3>
+                                        <p className="text-xs text-gray-400">
+                                            {tc.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </button>
                         ))}
-
                     </div>
+                </div>
 
-                </section>
+                {/* Bottom Cards */}
 
-                {/* Cards */}
+                <div className="mt-8 grid flex-1 grid-cols-2 gap-8">
+                    {/* Random Match */}
+                    <div
+                        className=" flex flex-col justify-between rounded-3xl border  border-white/10 bg-[#171a21] p-6 "
+                    >
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-full bg-green-500/10 p-3">
+                                    <Swords className="text-green-500"
+                                        size={24}
+                                    />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold">
+                                        Random Match
+                                    </h2>
+                                    <p className="mt-1 text-gray-400">
+                                        Find an opponent instantly.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="mt-8 rounded-2xl bg-black/40 p-5">
+                                <p className="text-sm text-gray-400">
+                                    Selected Time Control
+                                </p>
+                                <p className="mt-2 text-3xl font-bold text-green-500">
+                                    {
+                                        TIME_CONTROLS.find(
+                                            (tc) =>
+                                                tc.id ===
+                                                selectedTC
+                                        )?.title
+                                    }
+                                </p>
+                            </div>
+                        </div>
 
-                <section className="mt-12">
-
-                    <div className="grid gap-8 lg:grid-cols-2">
-
-                        <RandomMatchCard
-                            selectedTimeControl={
-                                selectedTimeControl
-                            }
-                            loading={randomLoading}
-                            onStartGame={
-                                handleStartGame
-                            }
+                        <Button
+                            onClick={handleStartPlay}
+                            text="Play Now"
                         />
 
-                        <form
-                            onSubmit={handleSubmit(() =>
-                                handleSendRequestToFriend(
-                                    selectedTimeControl,
-                                    username
-                                )
-                            )}
-                        >
-
-                            <FriendRequestCard
-                                selectedTimeControl={
-                                    selectedTimeControl
-                                }
-                                loading={friendLoading}
-                                error={
-                                    errors.username?.message
-                                }
-                                onSendRequest={
-                                    handleSendRequestToFriend
-                                }
-                                {...register("username", {
-                                    required:
-                                        "Friend username is required",
-                                })}
-                            />
-
-                        </form>
-
                     </div>
 
-                </section>
 
+
+                    {/* Friend Match */}
+                    <div
+                        className=" flex flex-col justify-between rounded-3xl border  border-white/10 bg-[#171a21] p-6"
+                    >
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-full bg-green-500/10 p-3">
+                                    <UserPlus
+                                        className="text-green-500"
+                                        size={24}
+                                    />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-bold">
+                                        Play With Friend
+                                    </h2>
+                                    <p className="mt-1 text-gray-400">
+                                        Invite your friend using
+                                        their username.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="mt-8">
+                                <label className="mb-2 block text-sm text-gray-300">
+                                    Friend Username
+                                </label>
+                                <input
+                                    value={friendUsername}
+                                    onChange={(e) =>
+                                        setFriendUsername(
+                                            e.target.value
+                                        )
+                                    }
+                                    placeholder="Enter username..."
+                                    className=" w-full rounded-xl border  border-white/10 bg-[#0f1115] px-4 py-3 outline-none transition  focus:border-green-500 "
+                                />
+                            </div>
+                        </div>
+
+                        <Button
+                            onClick={handleRequestFriend}
+                            text="Send Request"
+                        />
+                    </div>
+                </div>
             </div>
-
         </div>
     );
+
 }

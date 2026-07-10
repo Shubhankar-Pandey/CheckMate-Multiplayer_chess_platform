@@ -12,8 +12,8 @@ interface ClockState {
 
 
 export class Game {
-    public player1 : {socket : WebSocket, color : "w" | "b"};
-    public player2 : {socket : WebSocket, color : "w" | "b"};
+    public player1 : {socket : WebSocket, color : "w" | "b", username : string};
+    public player2 : {socket : WebSocket, color : "w" | "b", username : string};
     private chess : Chess;
     private clock : ClockState;
     private flagTimeout: NodeJS.Timeout | null = null;
@@ -21,17 +21,17 @@ export class Game {
 
 
 
-    constructor(player1 : WebSocket, player2 : WebSocket, TC : string, private onGameOver: (player1: WebSocket, player2 : WebSocket) => void){
+    constructor(player1 : [WebSocket, string], player2 : [WebSocket, string], TC : string, private onGameOver: (player1: WebSocket, player2 : WebSocket) => void){
 
         // ***************** getting random color *****************
         const random : number = Math.floor(Math.random() * 10);
         if(random & 1){
-            this.player1 = {socket : player1, color : "w"};
-            this.player2 = {socket : player2, color : "b"};
+            this.player1 = {socket : player1[0], color : "w", username : player1[1]};
+            this.player2 = {socket : player2[0], color : "b", username : player2[1]};
         }
         else{
-            this.player1 = {socket : player1, color : "b"};
-            this.player2 = {socket : player2, color : "w"};
+            this.player1 = {socket : player1[0], color : "b", username : player1[1]};
+            this.player2 = {socket : player2[0], color : "w", username : player2[1]};
         }
         
         // ***************** intialising new game *****************
@@ -56,6 +56,7 @@ export class Game {
             payload : {
                 color : this.player1.color,
                 time : time,
+                opponent : this.player2.username,
             }
         }));
         this.player2.socket.send(JSON.stringify({
@@ -63,6 +64,7 @@ export class Game {
             payload : {
                 color : this.player2.color,
                 time : time,
+                opponent : this.player1.username,
             }
         }))
 

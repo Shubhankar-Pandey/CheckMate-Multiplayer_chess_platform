@@ -7,6 +7,7 @@ import Signin from './screens/Signin'
 import Signup from './screens/Signup'
 import { Toaster } from 'react-hot-toast'
 import SelectGame from './screens/SelectGame'
+import ProtectedRoute from './components/CommonComponents/ProtectedRoute'
 
 
 
@@ -22,14 +23,24 @@ function App() {
 
       <BrowserRouter>
         <Navbar/>
+
         <Routes>
           <Route path='/' element={<Landing/>}/>
-          <Route path='/selectGame' element = {<SelectGame/>}/>
           <Route path='/signin' element={<Signin/>}/>
           <Route path='/signup' element={<Signup/>}/>
+
           <Route path='/game' element={<Game/>}/>
+          <Route path='/selectGame' element={<SelectGame/>}/>
+
+          <Route element={<ProtectedRoute/>}>
+            {/* <Route path='/game' element={<Game/>}/> */}
+            {/* <Route path='/selectGame' element={<SelectGame/>}/> */}
+          </Route>
+        
         </Routes>
+
       </BrowserRouter>
+
     </div>
   )
 }

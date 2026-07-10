@@ -13,8 +13,12 @@ export const useSocket = () => {
         }
 
         ws.onclose = () => {
-            ws.close();
+            setSocket(null)
         }
+
+        return () => {
+            ws.close();
+        };
 
     }, [])
 

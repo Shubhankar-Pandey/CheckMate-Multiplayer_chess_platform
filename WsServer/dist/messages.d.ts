@@ -4,4 +4,10 @@ export declare const GAME_OVER = "game_over";
 export declare const TC_5_3 = "TC_5_3";
 export declare const TC_10_2 = "TC_10_2";
 export declare const TC_15_2 = "TC_15_2";
+export declare const checkMatePayload: {};
+export declare const threefoldRepetitionPayload: {};
+export declare const drawByFiftyMovesPayload: {};
+export declare const insufficientMaterialPayload: {};
+export declare const stalematePayload: {};
+export declare const drawPayload: {};
 //# sourceMappingURL=messages.d.ts.map
