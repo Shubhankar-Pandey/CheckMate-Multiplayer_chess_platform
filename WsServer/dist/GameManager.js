@@ -1,6 +1,7 @@
 import { Game } from "./Game.js";
 import { WebSocket } from "ws";
 import { INIT_GAME, MOVE, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
+import { connectedUsers } from "./index.js";
 export class GameManager {
     games;
     users;
@@ -11,9 +12,9 @@ export class GameManager {
         this.pendingUserMap = new Map();
     }
     addUser(socket) {
-        console.log("new user added");
         this.users.push(socket);
         this.addHandler(socket);
+        console.log("new user added");
         socket.on("close", () => {
             console.log("closing socket");
             this.removeUser(socket);

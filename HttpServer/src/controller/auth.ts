@@ -89,7 +89,8 @@ export const signin = async(req : Request, res : Response) => {
         }
 
         const payload = {
-            userId : existUser.id
+            userId : existUser.id,
+            username : existUser.username,
         }
 
         const token = jwt.sign(payload, process.env.JWT_SECRET!, {expiresIn : "2h"});

@@ -6,43 +6,32 @@ import { INIT_GAME, MOVE, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
 
 
 export class GameManager {
-    private games : Map<WebSocket, Game>;
-    private users : WebSocket[]; 
+    private games : Map<WebSocket, Game>; 
     private pendingUserMap : Map<string, [WebSocket, string]>;
-
+    connectedUsers : Map<string, WebSocket>;
 
     constructor(){
         this.games = new Map<WebSocket, Game>();
-        this.users = [];
+        this.connectedUsers = new Map<string, WebSocket>();
         this.pendingUserMap = new Map<string, [WebSocket, string]>();
     }
 
-    addUser(socket : WebSocket){
-        this.users.push(socket);
-        this.addHandler(socket);
+    addUser(socket : WebSocket, username : string){
+        this.connectedUsers.set(username, socket);
+        console.log("new user added = ", username);
+        this.addHandler(socket, username);
         console.log("new user added");
-        socket.on("close", () => {
-            console.log("closing socket");
-            this.removeUser(socket);
-        });
-        
-    }
-
-    removeUser(socket : WebSocket){
-        this.users = this.users.filter((s) => s !== socket)
-        // stop the game here because the user left
     }
 
     private checkMatching(TC: string, socket: WebSocket, username : string){
         const waitingSocket : undefined | [WebSocket, string] = this.pendingUserMap.get(TC);
 
-
-        if(waitingSocket === undefined){
+        if(username === undefined){
+            return;
+        }
+        else if(waitingSocket === undefined){
             // no one waiting, therefore this player waits
             this.pendingUserMap.set(TC, [socket, username]);
-        }
-        else if(username === undefined){
-            return;
         }
         else if(waitingSocket[0] === socket){
             // same player sent init twice, ignore
@@ -67,7 +56,7 @@ export class GameManager {
         // they can matchmake into a new game from here if they want
     }
 
-    private addHandler(socket : WebSocket){
+    private addHandler(socket : WebSocket, username : string){
         socket.on("message", (data) => {
             const message = JSON.parse(data.toString());
 
@@ -76,7 +65,6 @@ export class GameManager {
             // message = {
             //     type : 'init_game',
             //     timeControl : "TC_5_3",
-            //     username : "shubh"
             // }
 
             if(message.type === INIT_GAME){
@@ -84,13 +72,13 @@ export class GameManager {
                 // means user want to start a game
                 switch(message.timeControl){
                     case TC_5_3 : 
-                        this.checkMatching(TC_5_3, socket, message.username);
+                        this.checkMatching(TC_5_3, socket, username);
                         break;
                     case TC_10_2 : 
-                        this.checkMatching(TC_10_2, socket, message.username);
+                        this.checkMatching(TC_10_2, socket, username);
                         break;
                     case TC_15_2 : 
-                        this.checkMatching(TC_15_2, socket, message.username);
+                        this.checkMatching(TC_15_2, socket, username);
                         break;
                 }
             }

@@ -1,6 +1,6 @@
 import { WebSocket } from "ws";
 import { Chess } from "chess.js";
-import { drawByFiftyMovesPayload, drawPayload, GAME_OVER, INIT_GAME, insufficientMaterialPayload, MOVE, stalematePayload, threefoldRepetitionPayload } from "./messages.js";
+import { GAME_OVER, INIT_GAME, MOVE } from "./messages.js";
 
 interface ClockState {
     whiteTime : number;
@@ -107,7 +107,8 @@ export class Game {
         this.player1.socket.send(response);
         this.player2.socket.send(response);
 
-        this.onGameOver(this.player1.socket, this.player2.socket);       // <-- tell GameManager "I'm done, remove me"
+        // game over, remove this game from game manager
+        this.onGameOver(this.player1.socket, this.player2.socket);  
     }
 
     
@@ -165,34 +166,36 @@ export class Game {
         // check if the game is over
         // send the game over message to both the players
         if(this.chess.isStalemate()){
-            this.endGame(stalematePayload);
+            this.endGame({result : "Draw", reason : "Stalemate"});
             return;
         }
         else if(this.chess.isInsufficientMaterial()){
-            this.endGame(insufficientMaterialPayload);
+            this.endGame({result : "Draw", reason : "Insufficient Material"});
             return;
         }
         else if(this.chess.isDrawByFiftyMoves()){
-            this.endGame(drawByFiftyMovesPayload);
+            this.endGame({result : "Draw", reason : "Draw By Fifty Moves"});
             return;
         }
         else if(this.chess.isThreefoldRepetition()){
-            this.endGame(threefoldRepetitionPayload);
+            this.endGame({result : "Draw", reason : "Three fold Repetition"});
             return;
         }
         else if(this.chess.isCheckmate()){
-            this.endGame({winner : this.chess.turn() === 'w' ? "b" : "w", reasong : "checkmate"})
+            this.endGame({winner : this.chess.turn() === 'w' ? "b" : "w", reason : "checkmate"})
             return;
         }
         else if(this.chess.isDraw()){
-            this.endGame(drawPayload);
+            this.endGame({result : "Draw"});
             return;
         }
 
+
+        // if the game is not over
         this.startTurnTimer();
         
         // console.log("move before sending to player1 = ", move);
-        this.player1.socket.send(JSON.stringify({
+        const sendingMessage = {
             type : MOVE,
             payload : move,
             clock : {
@@ -200,18 +203,8 @@ export class Game {
                 blackTime : this.clock.blackTime,
                 turn : this.clock.turn,
             }
-        }))
-
-        // console.log("move before sending to player1 = ", move);
-        this.player2.socket.send(JSON.stringify({
-            type : MOVE,
-            payload : move,
-            clock : {
-                whiteTime : this.clock.whiteTime,
-                blackTime : this.clock.blackTime,
-                turn : this.clock.turn,
-            }
-        }))
-
+        };
+        this.player1.socket.send(JSON.stringify(sendingMessage));
+        this.player2.socket.send(JSON.stringify(sendingMessage));
     }
 }

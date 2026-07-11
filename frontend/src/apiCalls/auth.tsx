@@ -35,7 +35,7 @@ export const signinCall = async(data : SigninFormData) => {
             username : data.username,
             password : data.password, 
         }
-        const response = await axios.post(signin_endpoint, payload);
+        const response = await axios.post(signin_endpoint, payload, {withCredentials: true});
         if(response?.data){
             return response.data;
         }
