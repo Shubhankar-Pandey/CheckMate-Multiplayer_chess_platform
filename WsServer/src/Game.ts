@@ -55,17 +55,26 @@ export class Game {
             type : INIT_GAME,
             payload : {
                 color : this.player1.color,
-                time : time,
+                
                 opponent : this.player2.username,
-            }
+            },
+            time : {
+                whiteTime : this.clock.whiteTime,
+                blackTime : this.clock.blackTime,
+            },
+            turn : this.clock.turn,
         }));
         this.player2.socket.send(JSON.stringify({
             type : INIT_GAME,
             payload : {
                 color : this.player2.color,
-                time : time,
                 opponent : this.player1.username,
-            }
+            },
+            time : {
+                whiteTime : this.clock.whiteTime,
+                blackTime : this.clock.blackTime,
+            },
+            turn : this.clock.turn
         }))
 
         // ***************** starting the clock for left time *****************
@@ -198,11 +207,11 @@ export class Game {
         const sendingMessage = {
             type : MOVE,
             payload : move,
-            clock : {
+            time : {
                 whiteTime : this.clock.whiteTime,
                 blackTime : this.clock.blackTime,
-                turn : this.clock.turn,
-            }
+            },
+            turn : this.clock.turn,
         };
         this.player1.socket.send(JSON.stringify(sendingMessage));
         this.player2.socket.send(JSON.stringify(sendingMessage));

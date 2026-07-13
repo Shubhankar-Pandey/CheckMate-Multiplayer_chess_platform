@@ -72,7 +72,8 @@ export const signin = async (req, res) => {
             });
         }
         const payload = {
-            userId: existUser.id
+            userId: existUser.id,
+            username: existUser.username,
         };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "2h" });
         const cookieOptions = {

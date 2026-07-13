@@ -49,30 +49,36 @@ function parseCookies(cookieHeader: string | undefined): Record<string, string> 
 const wss = new WebSocketServer({
     port : PORT, 
     verifyClient : (info, callback) => {
-        const cookies = parseCookies(info.req.headers.cookie);
-        const token = cookies["token"]; // swap "token" for your actual cookie name
+        try{
+            const cookies = parseCookies(info.req.headers.cookie);
+            const token = cookies["token"]; // swap "token" for your actual cookie name
 
-        if (!token) {
-            callback(false, 401, "Unauthorized: no token");
-            return;
-        }
-
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET) as myJwtPayload;
-            if(!decoded.username){
-                callback(false, 401, "Unauthorized: invalid or expired token");
-            }
-            if (gameManager.connectedUsers.has(decoded.username)) {
-                callback(false, 409, "Already connected elsewhere");
+            if (!token) {
+                console.log("token missing");
+                callback(false, 401, "Unauthorized: no token");
                 return;
             }
 
-            // stash it here so the "connection" handler below can read it
-            (info.req as any).username = decoded.username;
-            callback(true);
-        } 
-        catch (err) {
-            callback(false, 401, "Unauthorized: invalid or expired token");
+            try {
+                const decoded = jwt.verify(token, JWT_SECRET) as myJwtPayload;
+                if(!decoded.username){
+                    callback(false, 401, "Unauthorized: invalid or expired token");
+                }
+                if (gameManager.connectedUsers.has(decoded.username)) {
+                    callback(false, 409, "Already connected elsewhere");
+                    return;
+                }
+
+                // stash it here so the "connection" handler below can read it
+                (info.req as any).username = decoded.username;
+                callback(true);
+            } 
+            catch (err) {
+                callback(false, 401, "Unauthorized: invalid or expired token");
+            }
+        }
+        catch(error){
+            console.error(error);
         }
     }
 });

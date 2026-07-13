@@ -22,6 +22,8 @@ export default function Game(){
     const [color, setColor] = useState<string>("");
     const [loading, setLoading] = useState(false);
     const [opponent, setOpponent] = useState<string>("");
+    const [time, setTime] = useState<{whiteTime : number, blackTime : number}>({whiteTime : 0, blackTime : 0});
+    const [turn, setTurn] = useState<string>("");
 
     const socket = useSocket();
     const location = useLocation();
@@ -50,6 +52,8 @@ export default function Game(){
         }
     }, [socket, user])
 
+
+
     useEffect(() => {
         if(!socket){
             return;
@@ -68,14 +72,19 @@ export default function Game(){
                     toast.success(`You are ${message.payload.color === 'b' ? "Black" : "White"}`);
                     setLoading(false);
                     setOpponent(message.payload.opponent);
+                    setTime({whiteTime : message.time.whiteTime, blackTime : message.time.blackTime})
+                    setTurn(message.turn);
                     break;
                 case GAME_OVER :
                     toast.success("Game over");
+                    // TODO on game over
                     break;
                 case MOVE :
                     chess.move(message.payload);
                     setChess(chess);
                     setBoard([...chess.board()]);
+                    setTime({whiteTime : message.time.whiteTime, blackTime : message.time.blackTime})
+                    setTurn(message.turn);
                     break;
             }
         }
@@ -139,6 +148,8 @@ export default function Game(){
                         chess={chess}
                         color={color || "white"}
                         opponent = {opponent}
+                        time = {time}
+                        turn = {turn}
                     />
                 </div>
 

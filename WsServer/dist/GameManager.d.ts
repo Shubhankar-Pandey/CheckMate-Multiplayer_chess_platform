@@ -1,11 +1,10 @@
 import { WebSocket } from "ws";
 export declare class GameManager {
     private games;
-    private users;
     private pendingUserMap;
+    connectedUsers: Map<string, WebSocket>;
     constructor();
-    addUser(socket: WebSocket): void;
-    removeUser(socket: WebSocket): void;
+    addUser(socket: WebSocket, username: string): void;
     private checkMatching;
     private removeGame;
     private addHandler;
