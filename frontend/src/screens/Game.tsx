@@ -1,16 +1,18 @@
 import ChessBoard from "../components/coreComponents/ChessBoard"
 import { useSocket } from "../hooks/useSocket"
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import toast from "react-hot-toast";
 import ShowMoves from "../components/coreComponents/ShowMoves";
 import { useLocation } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setMessage } from "../Redux/Slices/messageSlice";
 
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
 export const GAME_OVER = "game_over";
+export const CHAT = "chat"
 
 export const FRIEND_REQUEST = "friend_request";
 
@@ -27,9 +29,15 @@ export default function Game(){
 
     const socket = useSocket();
     const location = useLocation();
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const { selectedTC } = location.state;
     const { user } = useSelector((state : any) => state.user);
+    const dispatch = useDispatch();
+
+
+
+
 
     useEffect(() => {
         if(!socket){
@@ -86,9 +94,29 @@ export default function Game(){
                     setTime({whiteTime : message.time.whiteTime, blackTime : message.time.blackTime})
                     setTurn(message.turn);
                     break;
+                case CHAT :
+                    console.log(message);
+                    dispatch(setMessage({user, username : message.username, text : message.text}));
+                    break; 
             }
         }
     }, [socket, chess])
+
+
+    function messageSendHandler(){
+        if (!inputRef.current) return;
+        const text = inputRef.current.value;
+        try{
+            socket?.send(JSON.stringify({
+                type : CHAT,
+                text : text,
+            }))
+            inputRef.current.value = "";
+        }
+        catch(err){
+            console.error(err);
+        }
+    }
 
 
     if(loading){
@@ -119,6 +147,7 @@ export default function Game(){
                             <p> {color === "w" ? "Black" : "White"} </p>
                         </div>
                     </div>
+
                     {/* messaging box  */}
                     <div className="border border-zinc-700 rounded-2xl p-2 flex flex-col mt-3 w-full bg-black gap-y-2">
                         <div className="py-2 px-1 rounded-md text-center bg-zinc-900 border border-zinc-700">
@@ -129,15 +158,18 @@ export default function Game(){
                         </div>
 
                         <div className="flex gap-x-2"> 
-                            <input type="text" placeholder="Message"
+                            <input ref={inputRef} 
+                            type="text" placeholder="Message"
                                 className="rounded-xl w-[80%] border border-zinc-700 px-2"/>
                             
-                            <button className="bg-black py-1 px-2 border border-green-500 rounded-xl 
+                            <button onClick={() => messageSendHandler()}
+                             className="bg-black py-1 px-2 border border-green-500 rounded-xl 
                                 hover:text-black hover:bg-green-500 font-bold"> 
                                 Send
                             </button>
                         </div>
                     </div>
+
                 </div>
 
                 {/* MIDDLE: board — no h-full here, let it define the row's natural height */}

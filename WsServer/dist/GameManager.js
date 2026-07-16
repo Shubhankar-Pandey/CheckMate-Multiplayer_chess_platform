@@ -1,6 +1,6 @@
 import { Game } from "./Game.js";
 import { WebSocket } from "ws";
-import { INIT_GAME, MOVE, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
+import { CHAT, INIT_GAME, MOVE, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
 export class GameManager {
     games;
     pendingUserMap;
@@ -73,6 +73,16 @@ export class GameManager {
                 if (game) {
                     game.makeMove(socket, message.payload);
                 }
+            }
+            else if (message.type === CHAT) {
+                const text = message.text;
+                const getGame = this.games.get(socket);
+                const sendMessage = {
+                    type: CHAT,
+                    text: text,
+                };
+                getGame?.player1.socket.send(JSON.stringify(sendMessage));
+                getGame?.player2.socket.send(JSON.stringify(sendMessage));
             }
         });
     }
