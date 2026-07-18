@@ -80,6 +80,7 @@ export class GameManager {
                 const sendMessage = {
                     type: CHAT,
                     text: text,
+                    username
                 };
                 getGame?.player1.socket.send(JSON.stringify(sendMessage));
                 getGame?.player2.socket.send(JSON.stringify(sendMessage));

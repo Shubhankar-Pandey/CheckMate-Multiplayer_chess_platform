@@ -104,9 +104,9 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
                                                 : isPossibleMove ? square === null ?
                                                                 "bg-blue-500 border border-zinc-950" 
                                                                 : "bg-red-500 border border-zinc-950"
-                                            : (i+j) % 2 === 0 ? from === cellSquare ?
-                                                                "bg-orange-400" : "bg-green-700" 
-                                                                : "bg-green-100"}`
+                                                : from === cellSquare ? "bg-orange-400" 
+                                                                : (i+j) % 2 === 0 ? "bg-green-700" 
+                                                                                : "bg-green-100"}`
                                                     }>
                                                     <div className="text-black flex items-center justify-center w-full h-full">
                                                         {

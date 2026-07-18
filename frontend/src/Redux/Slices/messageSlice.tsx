@@ -2,11 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 
 
 const initialState : {
-    me : string[];
-    opponent : string[];
+    messages : {text : string, username : string}[]
 } = {
-    me : [],
-    opponent : [],
+    messages : [],
 } 
 
 export const messageSlice = createSlice({
@@ -14,12 +12,7 @@ export const messageSlice = createSlice({
     initialState,
     reducers : {
         setMessage : (state, actions) => {
-            if(actions.payload.user === actions.payload.username){
-                state.me.push(actions.payload.text);
-            }
-            else{
-                state.opponent.push(actions.payload.text);
-            }
+            state.messages.push({text : actions.payload.text, username : actions.payload.username})
         }
     }
 })  

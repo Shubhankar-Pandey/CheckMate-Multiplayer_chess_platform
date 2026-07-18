@@ -33,6 +33,7 @@ export default function Game(){
 
     const { selectedTC } = location.state;
     const { user } = useSelector((state : any) => state.user);
+    const { messages } = useSelector((state : any) => state.message);
     const dispatch = useDispatch();
 
 
@@ -96,7 +97,7 @@ export default function Game(){
                     break;
                 case CHAT :
                     console.log(message);
-                    dispatch(setMessage({user, username : message.username, text : message.text}));
+                    dispatch(setMessage({text : message.text, username : message.username}));
                     break; 
             }
         }
@@ -153,8 +154,34 @@ export default function Game(){
                         <div className="py-2 px-1 rounded-md text-center bg-zinc-900 border border-zinc-700">
                             <p className="font-bold">Chat Box</p>
                         </div>
-                        <div className="border border-zinc-700 bg-zinc-900 py-4 px-2 rounded-2xl h-96">
-                            Messages
+                        <div className="border border-zinc-700 bg-zinc-900 py-4 px-3 rounded-2xl h-96 overflow-y-auto flex flex-col gap-y-2">
+                            {
+                                messages.length === 0 ? (
+                                    <div className="flex-1 flex items-center justify-center text-zinc-500 text-sm">
+                                        No messages yet
+                                    </div>
+                                ) : (
+                                    messages.map((m: { text: string; username: string }, index: number) => {
+                                        const isMe = user.username === m.username;
+                                        return (
+                                            <div
+                                                key={index}
+                                                className={`flex flex-col max-w-[75%] ${isMe ? "self-end items-end" : "self-start items-start"}`}
+                                            >
+                                                <div
+                                                    className={`px-3 py-2 rounded-2xl text-sm wrap-break-word
+                                                        ${isMe
+                                                            ? "bg-green-500 text-black rounded-br-sm"
+                                                            : "bg-zinc-700 text-white rounded-bl-sm"
+                                                        }`}
+                                                >
+                                                    {m.text}
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                )
+                            }
                         </div>
 
                         <div className="flex gap-x-2"> 
