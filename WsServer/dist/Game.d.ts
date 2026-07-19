@@ -18,7 +18,7 @@ export declare class Game {
     constructor(player1: [WebSocket, string], player2: [WebSocket, string], TC: string, onGameOver: (player1: WebSocket, player2: WebSocket) => void);
     private startTurnTimer;
     private handleFlagFall;
-    private endGame;
+    endGame(payload: any): void;
     makeMove(socket: WebSocket, move: {
         from: string;
         to: string;

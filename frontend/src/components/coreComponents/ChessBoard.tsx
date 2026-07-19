@@ -14,7 +14,7 @@ type SquareType = {
 } | null;
 
 
-export default function ChessBoard({socket, board, chess, color, opponent, time, turn} : {
+export default function ChessBoard({socket, board, chess, color, opponent, time, turn, gameOver} : {
     board: SquareType[][];
     socket : WebSocket;
     chess : Chess;
@@ -22,6 +22,7 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
     opponent : string;
     time : {whiteTime : number, blackTime : number};
     turn : string;
+    gameOver : boolean;
 }){
 
     const [from, setFrom] = useState<null | string>(null);
@@ -35,7 +36,7 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
 
         if(!from){
             const piece = board[i][j];
-            if (!piece) return;
+            if (!piece || piece.color !== color || turn !== color) return;
             setFrom(position);
 
             if(square){
@@ -64,8 +65,8 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
             <div className="flex justify-between border border-zinc-700 p-1">
                 <div className="px-3">{opponent}</div>
                 {
-                    color === "b" ? <Clock time = {time.whiteTime} turn = {turn} color = "w"/> 
-                    : <Clock time = {time.blackTime} turn = {turn} color = "b"/>
+                    color === "b" ? <Clock time = {time.whiteTime} turn = {turn} color = "w" gameOver = {gameOver}/> 
+                    : <Clock time = {time.blackTime} turn = {turn} color = "b" gameOver = {gameOver}/>
                 }
             </div>
 
@@ -143,8 +144,8 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
             <div className="flex justify-between border border-zinc-700 p-1 mt-1">
                 <div className="px-3">{user.username}</div>
                 {
-                    color === "w" ? <Clock time = {time.whiteTime} turn = {turn} color = "w"/> 
-                    : <Clock time = {time.blackTime} turn = {turn} color = "b"/>
+                    color === "w" ? <Clock time = {time.whiteTime} turn = {turn} color = "w" gameOver = {gameOver}/> 
+                    : <Clock time = {time.blackTime} turn = {turn} color = "b" gameOver = {gameOver}/>
                 }
             </div>
         </div>

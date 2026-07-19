@@ -103,7 +103,7 @@ export class Game {
 
 
 
-    private endGame(payload: any){
+    endGame(payload: any){
         if(this.isOver) return;   
         this.isOver = true;
 
@@ -175,27 +175,27 @@ export class Game {
         // check if the game is over
         // send the game over message to both the players
         if(this.chess.isStalemate()){
-            this.endGame({result : "Draw", reason : "Stalemate"});
+            this.endGame({result : "Draw", reason : "Stalemate", move : move, turn : this.clock.turn});
             return;
         }
         else if(this.chess.isInsufficientMaterial()){
-            this.endGame({result : "Draw", reason : "Insufficient Material"});
+            this.endGame({result : "Draw", reason : "Insufficient Material", move : move, turn : this.clock.turn});
             return;
         }
         else if(this.chess.isDrawByFiftyMoves()){
-            this.endGame({result : "Draw", reason : "Draw By Fifty Moves"});
+            this.endGame({result : "Draw", reason : "Draw By Fifty Moves", move : move, turn : this.clock.turn});
             return;
         }
         else if(this.chess.isThreefoldRepetition()){
-            this.endGame({result : "Draw", reason : "Three fold Repetition"});
+            this.endGame({result : "Draw", reason : "Three fold Repetition", move : move, turn : this.clock.turn});
             return;
         }
         else if(this.chess.isCheckmate()){
-            this.endGame({winner : this.chess.turn() === 'w' ? "b" : "w", reason : "checkmate"})
+            this.endGame({winner : this.chess.turn() === 'w' ? "b" : "w", reason : "checkmate", move : move, turn : this.clock.turn})
             return;
         }
         else if(this.chess.isDraw()){
-            this.endGame({result : "Draw"});
+            this.endGame({result : "Draw", move : move, turn : this.clock.turn});
             return;
         }
 

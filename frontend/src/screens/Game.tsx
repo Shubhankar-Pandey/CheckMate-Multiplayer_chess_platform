@@ -4,17 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import toast from "react-hot-toast";
 import ShowMoves from "../components/coreComponents/ShowMoves";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setMessage } from "../Redux/Slices/messageSlice";
+import { Flag, Handshake  } from 'lucide-react';
+import ConfirmationModal from "../components/CommonComponents/ConfirmationModal";
+
 
 
 export const INIT_GAME = "init_game";
 export const MOVE = "move";
 export const GAME_OVER = "game_over";
-export const CHAT = "chat"
-
+export const CHAT = "chat";
+export const RESIGN = "resign";
+export const DRAW = "draw";
+export const DRAW_RESPONSE = "drawResponse"
 export const FRIEND_REQUEST = "friend_request";
+export const REGINATION = "Regination";
+export const DRAW_OFFER = "Draw offer";
+
 
 
 export default function Game(){
@@ -26,15 +34,26 @@ export default function Game(){
     const [opponent, setOpponent] = useState<string>("");
     const [time, setTime] = useState<{whiteTime : number, blackTime : number}>({whiteTime : 0, blackTime : 0});
     const [turn, setTurn] = useState<string>("");
+    const [gameOver, setGameOver] = useState<boolean>(false);
 
     const socket = useSocket();
     const location = useLocation();
     const inputRef = useRef<HTMLInputElement>(null);
+    const navigate = useNavigate();
 
     const { selectedTC } = location.state;
     const { user } = useSelector((state : any) => state.user);
     const { messages } = useSelector((state : any) => state.message);
     const dispatch = useDispatch();
+
+    interface modalInterface {
+        text : string, 
+        button1Text : string, 
+        button2Text : string,
+        button1Handler : () => void,
+        button2Handler : () => void,
+    }
+    const [modalData, setModalData] = useState<modalInterface | null>(null);
 
 
 
@@ -59,7 +78,7 @@ export default function Game(){
             console.log(error);
             toast.error("Error in connection to ws");
         }
-    }, [socket, user])
+    }, [socket])
 
 
 
@@ -85,6 +104,86 @@ export default function Game(){
                     setTurn(message.turn);
                     break;
                 case GAME_OVER :
+                    if(message.payload.reason === REGINATION){
+                        if(user.username === message.payload.winner){
+                            setModalData({
+                                text : "You won by opponent regination",
+                                button1Text : "New Game",
+                                button2Text : "Games history",
+                                button1Handler : () => {
+                                    navigate("/selectGame");
+                                    setModalData(null);
+                                },
+                                button2Handler : () => {
+                                    navigate("/");
+                                    setModalData(null);
+                                }
+                            })
+                        }
+                        else{
+                            setModalData({
+                                text : "You loose by regination",
+                                button1Text : "New Game",
+                                button2Text : "Games history",
+                                button1Handler : () => {
+                                    navigate("/selectGame");
+                                    setModalData(null);
+                                },
+                                button2Handler : () => {
+                                    navigate("/");
+                                    setModalData(null);
+                                }
+                            })
+                        }
+                    }
+                    else if(message.payload.reason === DRAW_OFFER){
+                        setModalData({
+                            text : "Game Draw",
+                            button1Text : "New Game",
+                            button2Text : "Games history",
+                            button1Handler : () => {
+                                navigate("/selectGame");
+                                setModalData(null);
+                            },
+                            button2Handler : () => {
+                                navigate("/");
+                                setModalData(null);
+                            }
+                        })
+                    }
+                    else{
+                        chess.move(message.payload.move);
+                        setChess(chess);
+                        setBoard([...chess.board()]);
+                        setTurn(message.payload.turn);
+                        let text = "";
+                        if(message.payload.reason === "checkmate"){
+                            const winner = chess.turn() === color;
+                            if(winner){
+                                text = "You won by checkmate";
+                            }
+                            else{
+                                text = "You loose by checkmate";
+                            }
+                        }
+                        else{
+                            text = `${message.payload?.result} + " by " + ${message.payload?.reason}`;
+                        }
+                        setModalData({
+                            text : text,
+                            button1Text : "New Game",
+                            button2Text : "Games history",
+                            button1Handler : () => {
+                                navigate("/selectGame");
+                                setModalData(null);
+                            },
+                            button2Handler : () => {
+                                navigate("/");
+                                setModalData(null);
+                            }
+                        })
+                    }
+                    setGameOver(true);
                     toast.success("Game over");
                     // TODO on game over
                     break;
@@ -99,6 +198,42 @@ export default function Game(){
                     console.log(message);
                     dispatch(setMessage({text : message.text, username : message.username}));
                     break; 
+                case DRAW :
+                    setModalData({
+                        text : "Opponent offers draw",
+                        button1Text : "Accept",
+                        button2Text : "Reject",
+                        button1Handler : () => {
+                            try{
+                                socket?.send(JSON.stringify({
+                                    type : DRAW_RESPONSE,
+                                    result : true,
+                                }))
+                                setModalData(null);
+                            }
+                            catch(error){
+                                console.log(error);
+                            }
+                        },
+                        button2Handler : () => {
+                            try{
+                                socket?.send(JSON.stringify({
+                                    type : DRAW_RESPONSE,
+                                    result : false,
+                                }))
+                                setModalData(null);
+                            }
+                            catch(error){
+                                console.log(error);
+                            }
+                        }
+                    })
+                    break;
+                case DRAW_RESPONSE :
+                    if(message.result === false){
+                        toast.error("Draw offer Rejected");
+                    } 
+                    break;
             }
         }
     }, [socket, chess])
@@ -119,6 +254,50 @@ export default function Game(){
         }
     }
 
+    function resignHandler(){
+        setModalData({
+            text : "Are you sure you want to resign",
+            button1Text : "Yes",
+            button2Text : "No",
+            button1Handler : () => {
+                try{
+                    socket?.send(JSON.stringify({
+                        type : RESIGN,
+                    }))
+                }
+                catch(error){
+                    console.log(error);
+                }
+                setModalData(null);
+            },
+            button2Handler : () => {
+                setModalData(null);
+            }
+        })
+    }
+
+    function drawHandler(){
+        setModalData({
+            text : "Are you sure you want to offer draw",
+            button1Text : "Yes",
+            button2Text : "No",
+            button1Handler : () => {
+                try{
+                    socket?.send(JSON.stringify({
+                        type : DRAW,
+                    })) 
+                }
+                catch(error){
+                    console.log(error);
+                }
+                setModalData(null);
+            },
+            button2Handler : () => {
+                setModalData(null);
+            }
+        })
+    }
+
 
     if(loading){
         return (
@@ -129,24 +308,25 @@ export default function Game(){
     }
 
     return (
-        <div className="text-white py-3 px-3 bg-black/80 max-h-screen w-full">
+        <div className="relative text-white py-3 px-3 bg-black/80 max-h-screen w-full">
 
             <div className="flex items-start gap-x-6 justify-between">
 
                 {/* LEFT: player panel — fixed width, stretches to board height via default flex stretch */}
                 <div className="w-[23%] shrink-0">
                     {/* players name  */}
-                    <div className="border border-zinc-700 rounded-2xl p-3 w-full
-                        flex flex-col items-center justify-center gap-y-2 bg-black">
-                        <div className="text-lg font-semibold text-center flex gap-x-2">
-                            <p> {user.username} </p>
-                            <p> {color === "w" ? "White" : "Black"} </p>
-                        </div>
-                        <div className="text-zinc-500 text-sm">vs</div>
-                        <div className="text-lg font-semibold text-center text-zinc-400 flex gap-x-2">
-                            <p> {opponent} </p>
-                            <p> {color === "w" ? "Black" : "White"} </p>
-                        </div>
+                    <div className="border border-zinc-950 rounded-2xl p-3 w-full
+                        flex items-center justify-evenly gap-y-2 bg-green-500">
+                        <button onClick={() => resignHandler()}
+                        className="flex justify-center items-center gap-x-1 text-white font-bold hover:text-black">
+                            <Flag/>
+                            <p>Resign</p>
+                        </button>
+                        <button onClick={() => drawHandler()}
+                        className="flex justify-center items-center gap-x-1 text-white font-bold hover:text-black">
+                            <Handshake/>
+                            <p>Offer Draw</p>
+                        </button>
                     </div>
 
                     {/* messaging box  */}
@@ -209,6 +389,7 @@ export default function Game(){
                         opponent = {opponent}
                         time = {time}
                         turn = {turn}
+                        gameOver = {gameOver}
                     />
                 </div>
 
@@ -218,6 +399,10 @@ export default function Game(){
                 </div>
 
             </div>
+
+            {
+                modalData && <ConfirmationModal {...modalData}/>
+            }
 
         </div>
     )

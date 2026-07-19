@@ -1,6 +1,6 @@
 import { Game } from "./Game.js";
 import { WebSocket } from "ws";
-import { CHAT, INIT_GAME, MOVE, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
+import { CHAT, DRAW, DRAW_OFFER, DRAW_RESPONSE, INIT_GAME, MOVE, REGINATION, RESIGN, TC_10_2, TC_15_2, TC_5_3 } from "./messages.js";
 
 
 
@@ -98,6 +98,43 @@ export class GameManager {
                 }
                 getGame?.player1.socket.send(JSON.stringify(sendMessage));
                 getGame?.player2.socket.send(JSON.stringify(sendMessage));
+            }
+            else if(message.type === RESIGN){
+                const getGame = this.games.get(socket);
+                const winner = getGame?.player1.socket === socket ?
+                                        getGame?.player2.username : 
+                                        getGame?.player1.username;
+                getGame?.endGame({reason : REGINATION, winner : winner})
+            }
+            else if(message.type === DRAW){
+                const getGame = this.games.get(socket);
+                const sendMessage = {
+                    type : DRAW,
+                }
+                if(getGame?.player1.username !== username){
+                    getGame?.player1.socket.send(JSON.stringify(sendMessage));
+                }
+                else{
+                    getGame?.player2.socket.send(JSON.stringify(sendMessage));
+                }
+            }
+            else if(message.type === DRAW_RESPONSE){
+                const getGame = this.games.get(socket);
+                if(message.result === true){
+                    getGame?.endGame({reason : DRAW_OFFER})
+                }
+                else{
+                    const sendMessage = {
+                        type : DRAW_RESPONSE,
+                        result : false,
+                    }
+                    if(getGame?.player1.username !== username){
+                        getGame?.player1.socket.send(JSON.stringify(sendMessage));
+                    }
+                    else{
+                        getGame?.player2.socket.send(JSON.stringify(sendMessage));
+                    }
+                }
             }
         })
     }

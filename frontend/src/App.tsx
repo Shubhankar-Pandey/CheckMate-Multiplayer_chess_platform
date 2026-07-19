@@ -29,12 +29,9 @@ function App() {
           <Route path='/signin' element={<Signin/>}/>
           <Route path='/signup' element={<Signup/>}/>
 
-          <Route path='/game' element={<Game/>}/>
-          <Route path='/selectGame' element={<SelectGame/>}/>
-
           <Route element={<ProtectedRoute/>}>
-            {/* <Route path='/game' element={<Game/>}/> */}
-            {/* <Route path='/selectGame' element={<SelectGame/>}/> */}
+            <Route path='/game' element={<Game/>}/>
+            <Route path='/selectGame' element={<SelectGame/>}/>
           </Route>
         
         </Routes>

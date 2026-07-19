@@ -5,6 +5,13 @@ export const INIT_GAME = "init_game";
 export const MOVE = "move";
 export const GAME_OVER = "game_over";
 export const CHAT = "chat";
+export const RESIGN = "resign";
+export const DRAW = "draw";
+export const DRAW_RESPONSE = "drawResponse"
+export const FRIEND_REQUEST = "friend_request";
+export const REGINATION = "Regination";
+export const DRAW_OFFER = "Draw offer";
+
 
 
 export const TC_5_3 = "TC_5_3";

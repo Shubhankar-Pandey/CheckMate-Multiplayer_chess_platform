@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function Clock({ time, turn, color }: { time: number; turn: string; color: string;}) {
+
+export default function Clock({ time, turn, color, gameOver }: { time: number; turn: string; color: string; gameOver : boolean}) {
     const [remainingMs, setRemainingMs] = useState<number>(time);
     const intervalRef = useRef<number | null>(null);
 
-    // resync from the authoritative server value whenever a new one arrives
+    // sync the frontend time with ws server time
+
     useEffect(() => {
         setRemainingMs(time);
     }, [time]);
 
-    const isRunning = color === turn;
+    const isRunning = !gameOver && color === turn;
 
     useEffect(() => {
         if (!isRunning) {
@@ -30,6 +32,10 @@ export default function Clock({ time, turn, color }: { time: number; turn: strin
             }
         };
     }, [isRunning]);
+
+    if (gameOver) {
+        return null;
+    }
 
     const totalSeconds = Math.max(Math.floor(remainingMs / 1000), 0);
     const minute = Math.floor(totalSeconds / 60);
