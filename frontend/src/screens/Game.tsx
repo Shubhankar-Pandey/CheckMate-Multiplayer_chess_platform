@@ -158,7 +158,7 @@ export default function Game(){
                         setTurn(message.payload.turn);
                         let text = "";
                         if(message.payload.reason === "checkmate"){
-                            const winner = chess.turn() === color;
+                            const winner = chess.turn() !== color;
                             if(winner){
                                 text = "You won by checkmate";
                             }
