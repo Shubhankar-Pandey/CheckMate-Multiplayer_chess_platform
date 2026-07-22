@@ -1,8 +1,9 @@
 import type { Chess, Color, PieceSymbol, Square } from "chess.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MOVE } from "../../screens/Game";
 import { useSelector } from "react-redux";
 import Clock from "./Clock";
+import PawnPromotionModal from "./PawnPromotionModal";
 
 const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const numbers : number[] = [8, 7, 6, 5, 4, 3, 2 ,1];
@@ -27,39 +28,73 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
 
     const [from, setFrom] = useState<null | string>(null);
     const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
+    const [promotionPiece, setPromotionPiece] = useState<null | string>(null);
     const { user } = useSelector((state : any) => state.user);
+    const [needsPromotion, setNeedsPromotion] = useState<boolean>(false);
+    const [pendingMove, setPendingMove] = useState<{from: string, to: string} | null>(null);
 
-    function onMoveHandler(i : number,j : number, square : SquareType){
+
+    function onMoveHandler(i: number, j: number) {
         let row = 8 - i;
         let col = files[j];
         let position = `${col}${row}`;
 
-        if(!from){
-            const piece = board[i][j];
-            if (!piece || piece.color !== color || turn !== color) return;
+        const clickedPiece = board[i][j];
+
+        if (!from) {
+            if (!clickedPiece || clickedPiece.color !== color || turn !== color) return;
             setFrom(position);
 
-            if(square){
-                const moves = chess.moves({ square: square.square, verbose: true });
-                const arr: string[] = moves.map(move => move.to);
-                setPossibleMoves(arr);
-            }
+            const moves = chess.moves({ square: position as Square, verbose: true });
+            setPossibleMoves(moves.map(move => move.to));
+            return;
         }
-        else{
+
+        // second click: figure out what's actually being moved
+        const movingPiece = chess.get(from as Square); // the pawn we picked up, not the destination
+        const isPromotion =
+            movingPiece?.type === "p" &&
+            movingPiece.color === chess.turn() &&
+            (movingPiece.color === "w" ? position.endsWith("8") : position.endsWith("1"));
+
+        if (isPromotion) {
+            // don't send yet — wait for the user to pick a piece
+            setPendingMove({ from, to: position });
+            setNeedsPromotion(true);
+            return; 
+        }
+
+        socket.send(JSON.stringify({
+            type: MOVE,
+            payload: { from, to: position }
+        }));
+        setFrom(null);
+        setPossibleMoves([]);
+    }
+
+    // fires once the modal sets a piece
+    useEffect(() => {
+        if (promotionPiece && pendingMove) {
             socket.send(JSON.stringify({
-                type : MOVE,
-                payload : {
-                    from,
-                    to : position,
+                type: MOVE,
+                payload: {
+                    from: pendingMove.from,
+                    to: pendingMove.to,
+                    promotion: promotionPiece,
                 }
-            }))
+            }));
+            setPromotionPiece(null);
+            setPendingMove(null);
+            setNeedsPromotion(false);
             setFrom(null);
             setPossibleMoves([]);
         }
-    }
+    }, [promotionPiece, pendingMove]);
+
+
 
     return (
-        <div className="flex flex-col">
+        <div className="relative flex flex-col">
 
             {/* username and clock   */}
             <div className="flex justify-between border border-zinc-700 p-1">
@@ -98,7 +133,7 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
                                         const isKingInCheck = underCheck && piece?.type === "k" && turn === piece?.color;
 
                                         return (
-                                            <div onClick={() => onMoveHandler(i,j, square)}
+                                            <div onClick={() => onMoveHandler(i,j)}
                                             key={j}
                                             className={`w-16 h-16
                                             ${  isKingInCheck ? "bg-red-500 border border-zinc-950"
@@ -148,6 +183,9 @@ export default function ChessBoard({socket, board, chess, color, opponent, time,
                     : <Clock time = {time.blackTime} turn = {turn} color = "b" gameOver = {gameOver}/>
                 }
             </div>
+            {
+                needsPromotion && <PawnPromotionModal setPromotionPiece={setPromotionPiece}/>
+            }
         </div>
     )
 }
