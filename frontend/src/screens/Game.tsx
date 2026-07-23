@@ -136,6 +136,38 @@ export default function Game(){
                             })
                         }
                     }
+                    else if(message.payload.reason === "timeout"){
+                        if(color === message.payload.winner){
+                            setModalData({
+                                text : "You won by opponent timeout",
+                                button1Text : "New Game",
+                                button2Text : "Games history",
+                                button1Handler : () => {
+                                    navigate("/selectGame");
+                                    setModalData(null);
+                                },
+                                button2Handler : () => {
+                                    navigate("/");
+                                    setModalData(null);
+                                }
+                            })
+                        }
+                        else{
+                            setModalData({
+                                text : "You loose by timeout",
+                                button1Text : "New Game",
+                                button2Text : "Games history",
+                                button1Handler : () => {
+                                    navigate("/selectGame");
+                                    setModalData(null);
+                                },
+                                button2Handler : () => {
+                                    navigate("/");
+                                    setModalData(null);
+                                }
+                            })
+                        }
+                    }
                     else if(message.payload.reason === DRAW_OFFER){
                         setModalData({
                             text : "Game Draw",

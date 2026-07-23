@@ -93,6 +93,7 @@ export class Game {
 
 
     private handleFlagFall(){
+        console.log("handle flag fall called");
         const loserColor = this.clock.turn; // whoever's turn it was, ran out of time 
         const winner = loserColor === "w" ? "b" : "w";
         
@@ -104,6 +105,7 @@ export class Game {
 
 
     endGame(payload: any){
+        console.log("end game called");
         if(this.isOver) return;   
         this.isOver = true;
 
@@ -113,6 +115,8 @@ export class Game {
         }
 
         const response = JSON.stringify({ type: GAME_OVER, payload });
+        console.log("response = ", response);
+        
         this.player1.socket.send(response);
         this.player2.socket.send(response);
 
