@@ -22,7 +22,7 @@ export const useSocket = () => {
             }
         }
         catch(error){
-            console.log(error);
+            return;
         }
     }, [])
 

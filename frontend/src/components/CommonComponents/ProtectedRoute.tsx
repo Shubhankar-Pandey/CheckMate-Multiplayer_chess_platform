@@ -6,7 +6,6 @@ export default function ProtectedRoute() {
     const { user }  = useSelector((state: any) => state.user);
     
     if (Object.keys(user).length !== 0) {
-        console.log("outlet");
         return <Outlet />;
     }
     

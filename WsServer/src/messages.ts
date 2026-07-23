@@ -11,6 +11,7 @@ export const DRAW_RESPONSE = "drawResponse"
 export const FRIEND_REQUEST = "friend_request";
 export const REGINATION = "Regination";
 export const DRAW_OFFER = "Draw offer";
+export const RUNNING_GAME = "running_game"
 
 
 

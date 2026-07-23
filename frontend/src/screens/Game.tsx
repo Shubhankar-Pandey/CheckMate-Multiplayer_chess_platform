@@ -21,7 +21,8 @@ export const DRAW = "draw";
 export const DRAW_RESPONSE = "drawResponse"
 export const FRIEND_REQUEST = "friend_request";
 export const REGINATION = "Regination";
-export const DRAW_OFFER = "Draw offer";
+export const DRAW_OFFER = "Draw_offer";
+export const RUNNING_GAME = "running_game"
 
 
 
@@ -75,8 +76,8 @@ export default function Game(){
             socket.send(JSON.stringify(message));
         }
         catch(error){
-            console.log(error);
             toast.error("Error in connection to ws");
+            return;
         }
     }, [socket])
 
@@ -89,7 +90,6 @@ export default function Game(){
         socket.onmessage = (event) => {
 
             const message = JSON.parse(event.data);
-            console.log("message = ", message);
 
             switch(message.type) {
                 case INIT_GAME :
@@ -98,6 +98,18 @@ export default function Game(){
                     setBoard(newChess.board());
                     setColor(message.payload.color)
                     toast.success(`You are ${message.payload.color === 'b' ? "Black" : "White"}`);
+                    setLoading(false);
+                    setOpponent(message.payload.opponent);
+                    setTime({whiteTime : message.time.whiteTime, blackTime : message.time.blackTime})
+                    setTurn(message.turn);
+                    break;
+                case RUNNING_GAME :
+                    const runningChess = new Chess();
+                    runningChess.loadPgn(message.pgn);   // rebuilds position AND move history
+                    setChess(runningChess);
+                    setBoard(runningChess.board());
+                    setColor(message.payload.color)
+                    toast.success("Reconnected");
                     setLoading(false);
                     setOpponent(message.payload.opponent);
                     setTime({whiteTime : message.time.whiteTime, blackTime : message.time.blackTime})
@@ -227,7 +239,6 @@ export default function Game(){
                     setTurn(message.turn);
                     break;
                 case CHAT :
-                    console.log(message);
                     dispatch(setMessage({text : message.text, username : message.username}));
                     break; 
                 case DRAW :
@@ -244,7 +255,7 @@ export default function Game(){
                                 setModalData(null);
                             }
                             catch(error){
-                                console.log(error);
+                                return;
                             }
                         },
                         button2Handler : () => {
@@ -256,7 +267,7 @@ export default function Game(){
                                 setModalData(null);
                             }
                             catch(error){
-                                console.log(error);
+                                return;
                             }
                         }
                     })
@@ -282,7 +293,7 @@ export default function Game(){
             inputRef.current.value = "";
         }
         catch(err){
-            console.error(err);
+            return;
         }
     }
 
@@ -298,7 +309,7 @@ export default function Game(){
                     }))
                 }
                 catch(error){
-                    console.log(error);
+                    return;
                 }
                 setModalData(null);
             },
@@ -320,7 +331,7 @@ export default function Game(){
                     })) 
                 }
                 catch(error){
-                    console.log(error);
+                    return;
                 }
                 setModalData(null);
             },
@@ -333,8 +344,9 @@ export default function Game(){
 
     if(loading){
         return (
-            <div className="w-screen h-screen flex flex-col items-center justify-center bg-black">
+            <div className="w-screen h-screen flex flex-col items-center justify-center bg-black gap-2">
                 <div className="loader"></div>
+                <div className="text-white">Waiting for opponent...</div>
             </div>
         )
     }

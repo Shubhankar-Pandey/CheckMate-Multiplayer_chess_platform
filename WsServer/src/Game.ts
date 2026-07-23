@@ -14,14 +14,14 @@ interface ClockState {
 export class Game {
     public player1 : {socket : WebSocket, color : "w" | "b", username : string};
     public player2 : {socket : WebSocket, color : "w" | "b", username : string};
-    private chess : Chess;
-    private clock : ClockState;
+    public chess : Chess;
+    public clock : ClockState;
     private flagTimeout: NodeJS.Timeout | null = null;
     private isOver = false;
 
 
 
-    constructor(player1 : [WebSocket, string], player2 : [WebSocket, string], TC : string, private onGameOver: (player1: WebSocket, player2 : WebSocket) => void){
+    constructor(player1 : [WebSocket, string], player2 : [WebSocket, string], TC : string, private onGameOver: (player1: string, player2 : string) => void){
 
         // ***************** getting random color *****************
         const random : number = Math.floor(Math.random() * 10);
@@ -55,7 +55,6 @@ export class Game {
             type : INIT_GAME,
             payload : {
                 color : this.player1.color,
-                
                 opponent : this.player2.username,
             },
             time : {
@@ -93,7 +92,6 @@ export class Game {
 
 
     private handleFlagFall(){
-        console.log("handle flag fall called");
         const loserColor = this.clock.turn; // whoever's turn it was, ran out of time 
         const winner = loserColor === "w" ? "b" : "w";
         
@@ -105,7 +103,6 @@ export class Game {
 
 
     endGame(payload: any){
-        console.log("end game called");
         if(this.isOver) return;   
         this.isOver = true;
 
@@ -115,13 +112,12 @@ export class Game {
         }
 
         const response = JSON.stringify({ type: GAME_OVER, payload });
-        console.log("response = ", response);
-        
+
         this.player1.socket.send(response);
         this.player2.socket.send(response);
 
         // game over, remove this game from game manager
-        this.onGameOver(this.player1.socket, this.player2.socket);  
+        this.onGameOver(this.player1.username, this.player2.username);  
     }
 
     
@@ -151,7 +147,6 @@ export class Game {
             this.chess.move(move); // this line does all the three above mentioned steps
         }
         catch(e){
-            console.log("error in makeMove function in game.ts file -> error = ", e);
             return;
         }
 
@@ -207,7 +202,6 @@ export class Game {
         // if the game is not over
         this.startTurnTimer();
         
-        // console.log("move before sending to player1 = ", move);
         const sendingMessage = {
             type : MOVE,
             payload : move,

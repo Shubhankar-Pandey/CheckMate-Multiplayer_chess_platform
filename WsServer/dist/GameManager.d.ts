@@ -7,6 +7,7 @@ export declare class GameManager {
     addUser(socket: WebSocket, username: string): void;
     private checkMatching;
     private removeGame;
+    private checkAlreadyRunningGame;
     private addHandler;
 }
 //# sourceMappingURL=GameManager.d.ts.map

@@ -8,6 +8,7 @@ export declare const DRAW_RESPONSE = "drawResponse";
 export declare const FRIEND_REQUEST = "friend_request";
 export declare const REGINATION = "Regination";
 export declare const DRAW_OFFER = "Draw offer";
+export declare const RUNNING_GAME = "running_game";
 export declare const TC_5_3 = "TC_5_3";
 export declare const TC_10_2 = "TC_10_2";
 export declare const TC_15_2 = "TC_15_2";

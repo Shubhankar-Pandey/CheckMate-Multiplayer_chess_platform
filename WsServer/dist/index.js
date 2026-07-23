@@ -32,7 +32,6 @@ const wss = new WebSocketServer({
             const cookies = parseCookies(info.req.headers.cookie);
             const token = cookies["token"]; // swap "token" for your actual cookie name
             if (!token) {
-                console.log("token missing");
                 callback(false, 401, "Unauthorized: no token");
                 return;
             }
@@ -60,7 +59,6 @@ const wss = new WebSocketServer({
 });
 wss.on("connection", (socket, request) => {
     const username = request.username; // typed as string | undefined, no cast
-    console.log("username = ", username);
     if (!username) {
         socket.close(1008, "Missing user context");
         return;
@@ -69,7 +67,6 @@ wss.on("connection", (socket, request) => {
     gameManager.addUser(socket, username);
     socket.on("close", () => {
         gameManager.connectedUsers.delete(username);
-        console.log("user with username = ", username, " is removed");
     });
 });
 //# sourceMappingURL=index.js.map

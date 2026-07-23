@@ -41,7 +41,6 @@ export default function Signup() {
         try {
             const response = await signupCall(data);
             if(response?.success){
-                console.log("response.data = ", response);
                 toast.success(response.message);
                 navigate("/");
             }

@@ -1,4 +1,12 @@
 import { WebSocket } from "ws";
+import { Chess } from "chess.js";
+interface ClockState {
+    whiteTime: number;
+    blackTime: number;
+    increment: number;
+    turn: "w" | "b";
+    turnStartedAt: number;
+}
 export declare class Game {
     private onGameOver;
     player1: {
@@ -11,11 +19,11 @@ export declare class Game {
         color: "w" | "b";
         username: string;
     };
-    private chess;
-    private clock;
+    chess: Chess;
+    clock: ClockState;
     private flagTimeout;
     private isOver;
-    constructor(player1: [WebSocket, string], player2: [WebSocket, string], TC: string, onGameOver: (player1: WebSocket, player2: WebSocket) => void);
+    constructor(player1: [WebSocket, string], player2: [WebSocket, string], TC: string, onGameOver: (player1: string, player2: string) => void);
     private startTurnTimer;
     private handleFlagFall;
     endGame(payload: any): void;
@@ -24,4 +32,5 @@ export declare class Game {
         to: string;
     }): void;
 }
+export {};
 //# sourceMappingURL=Game.d.ts.map

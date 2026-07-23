@@ -24,7 +24,7 @@ export const signupCall = async(data : SignupFormData) => {
         }
     }
     catch(error){
-        console.log(error);
+        return null;
     }
 }
 
@@ -44,7 +44,7 @@ export const signinCall = async(data : SigninFormData) => {
         }
     }
     catch(error){
-        console.log(error);
+        return null;
     }
 }
 
@@ -60,6 +60,6 @@ export const signoutCall = async() => {
         }
     }
     catch(error){
-        console.log(error);
+        return null;
     }
 }

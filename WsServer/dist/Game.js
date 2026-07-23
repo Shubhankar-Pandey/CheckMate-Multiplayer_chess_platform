@@ -68,14 +68,12 @@ export class Game {
         this.flagTimeout = setTimeout(() => { this.handleFlagFall(); }, timeLeft);
     }
     handleFlagFall() {
-        console.log("handle flag fall called");
         const loserColor = this.clock.turn; // whoever's turn it was, ran out of time 
         const winner = loserColor === "w" ? "b" : "w";
         // end game, notify both players, clean up
         this.endGame({ winner, reason: "timeout" });
     }
     endGame(payload) {
-        console.log("end game called");
         if (this.isOver)
             return;
         this.isOver = true;
@@ -84,11 +82,10 @@ export class Game {
             this.flagTimeout = null;
         }
         const response = JSON.stringify({ type: GAME_OVER, payload });
-        console.log("response = ", response);
         this.player1.socket.send(response);
         this.player2.socket.send(response);
         // game over, remove this game from game manager
-        this.onGameOver(this.player1.socket, this.player2.socket);
+        this.onGameOver(this.player1.username, this.player2.username);
     }
     makeMove(socket, move) {
         if (this.isOver)
@@ -111,7 +108,6 @@ export class Game {
             this.chess.move(move); // this line does all the three above mentioned steps
         }
         catch (e) {
-            console.log("error in makeMove function in game.ts file -> error = ", e);
             return;
         }
         // timer logic 
@@ -157,7 +153,6 @@ export class Game {
         }
         // if the game is not over
         this.startTurnTimer();
-        // console.log("move before sending to player1 = ", move);
         const sendingMessage = {
             type: MOVE,
             payload: move,

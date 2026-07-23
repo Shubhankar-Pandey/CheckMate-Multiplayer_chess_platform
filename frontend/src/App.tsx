@@ -8,10 +8,37 @@ import Signup from './screens/Signup'
 import { Toaster } from 'react-hot-toast'
 import SelectGame from './screens/SelectGame'
 import ProtectedRoute from './components/CommonComponents/ProtectedRoute'
+import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { meCall } from './apiCalls/user'
+import { setUser } from './Redux/Slices/userSlice'
 
 
 
 function App() {
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    (
+      async () => {
+        const data = await meCall();
+        if(data?.success){
+          dispatch(setUser(data.user));
+        }
+        else{
+        }
+        setCheckingAuth(false);
+      }
+    )();
+  }, []);
+
+  if(checkingAuth){
+    return <div className="w-screen h-screen flex flex-col items-center justify-center bg-black gap-2">
+      <div className="loader"></div>
+      <div className='text-white'>Connecting...</div>
+    </div>;
+  }
 
   return (
     <div className='h-screen w-screen'>
